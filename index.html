@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A PM's Guide to Setting Up Claude Code on Windows</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50:  '#f0f4ff',
+              100: '#e0e9ff',
+              200: '#c7d7fe',
+              300: '#a5b8fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', system-ui, sans-serif; }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(-20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    .fade-in-up  { animation: fadeInUp  0.6s ease both; }
+    .fade-in     { animation: fadeIn    0.5s ease both; }
+    .slide-left  { animation: slideInLeft 0.5s ease both; }
+
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
+
+    /* Sidebar sticky */
+    .sidebar { position: sticky; top: 2rem; }
+
+    /* Code block */
+    .code-block {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .code-block pre {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      line-height: 1.7;
+      color: #e6edf3;
+      padding: 1.25rem 1.5rem;
+      overflow-x: auto;
+    }
+    .code-block .code-header {
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      padding: 0.6rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .code-block .lang-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: #8b949e;
+      letter-spacing: 0.05em;
+    }
+    .copy-btn {
+      font-size: 0.7rem;
+      color: #8b949e;
+      cursor: pointer;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid #30363d;
+      background: transparent;
+      transition: all 0.15s;
+    }
+    .copy-btn:hover { background: #21262d; color: #e6edf3; }
+
+    /* Syntax highlights */
+    .kw  { color: #ff7b72; }
+    .str { color: #a5d6ff; }
+    .cmt { color: #8b949e; font-style: italic; }
+    .fn  { color: #d2a8ff; }
+    .num { color: #79c0ff; }
+    .var { color: #ffa657; }
+
+    /* Step number */
+    .step-num {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 9999px;
+      background: #4f46e5;
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Progress bar */
+    .progress-track {
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6366f1, #818cf8);
+      border-radius: 9999px;
+      transition: width 1s ease;
+    }
+
+    /* Sidebar nav */
+    .nav-link {
+      display: block;
+      padding: 0.45rem 0.75rem;
+      border-left: 2px solid transparent;
+      color: #6b7280;
+      font-size: 0.85rem;
+      text-decoration: none;
+      transition: all 0.15s;
+      border-radius: 0 4px 4px 0;
+    }
+    .nav-link:hover, .nav-link.active {
+      border-left-color: #6366f1;
+      color: #4f46e5;
+      background: #f0f4ff;
+    }
+
+    /* Callout boxes */
+    .callout-tip   { background: #f0f4ff; border-left: 3px solid #6366f1; }
+    .callout-warn  { background: #fffbeb; border-left: 3px solid #f59e0b; }
+    .callout-info  { background: #f0f9ff; border-left: 3px solid #0ea5e9; }
+
+    /* Benefit card hover */
+    .benefit-card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .benefit-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(99,102,241,0.12);
+    }
+
+    /* Tool card */
+    .tool-card {
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .tool-card:hover {
+      border-color: #6366f1;
+      box-shadow: 0 4px 16px rgba(99,102,241,0.1);
+    }
+
+    /* Workflow step */
+    .workflow-step::after {
+      content: '→';
+      position: absolute;
+      right: -1.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9ca3af;
+      font-size: 1.1rem;
+    }
+    .workflow-step:last-child::after { display: none; }
+
+    /* Hero gradient */
+    .hero-bg {
+      background: linear-gradient(135deg, #312e81 0%, #4338ca 40%, #6366f1 100%);
+    }
+
+    /* Section anchor offset for sticky header */
+    [id] { scroll-margin-top: 1.5rem; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 antialiased">
+
+<!-- ═══════════════════════════════════════════════════════════ HERO -->
+<header class="hero-bg text-white">
+  <div class="max-w-5xl mx-auto px-6 py-20 fade-in-up">
+    <div class="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-sm font-medium mb-6">
+      <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+      Interactive Tutorial
+    </div>
+    <h1 class="text-4xl md:text-5xl font-extrabold leading-tight mb-6">
+      A PM's Guide to Setting Up<br/>Claude Code on Windows
+    </h1>
+    <p class="text-lg text-indigo-200 max-w-2xl mb-10">
+      From zero to a fully working AI-assisted development environment — no coding background required.
+    </p>
+    <div class="flex flex-wrap gap-4">
+      <a href="#setup" class="bg-white text-indigo-700 font-semibold px-6 py-3 rounded-lg hover:bg-indigo-50 transition">
+        Start the Guide →
+      </a>
+      <a href="#benefits" class="border border-white/30 text-white font-medium px-6 py-3 rounded-lg hover:bg-white/10 transition">
+        Why this matters
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════ LAYOUT -->
+<div class="max-w-5xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-10">
+
+  <!-- ── SIDEBAR -->
+  <aside class="sidebar hidden lg:block h-fit">
+    <p class="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">On this page</p>
+    <nav class="space-y-0.5">
+      <a href="#who"       class="nav-link">Who this is for</a>
+      <a href="#outcomes"  class="nav-link">What you'll get</a>
+      <a href="#benefits"  class="nav-link">Benefits</a>
+      <a href="#tools"     class="nav-link">Tools you'll use</a>
+      <a href="#setup"     class="nav-link">Setup guide</a>
+      <a href="#workflow"  class="nav-link">Daily workflow</a>
+
+    </nav>
+
+    <div class="mt-8 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+      <p class="text-xs font-semibold text-indigo-700 mb-1">Your progress</p>
+      <div class="progress-track my-2">
+        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+      </div>
+      <p class="text-xs text-indigo-500" id="progressLabel">0 of 6 steps</p>
+    </div>
+  </aside>
+
+  <!-- ── MAIN CONTENT -->
+  <main class="space-y-16 min-w-0">
+
+    <!-- WHO THIS IS FOR -->
+    <section id="who" class="fade-in-up">
+      <div class="inline-block bg-indigo-50 text-indigo-700 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-4">
+        Who this is for
+      </div>
+      <p class="text-gray-600 text-lg leading-relaxed">
+        Product managers who are <strong class="text-gray-900">technically comfortable</strong> —
+        you understand how software works conceptually, you're not afraid of a terminal —
+        but you don't write code professionally. By the end of this guide, you'll have a
+        fully working AI-assisted development environment on Windows and a clear understanding
+        of how to use it to prototype and build.
+      </p>
+    </section>
+
+    <!-- WHAT YOU'LL HAVE -->
+    <section id="outcomes" class="fade-in-up delay-1">
+      <div class="inline-block bg-green-50 text-green-700 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-4">
+        What you'll have when you're done
+      </div>
+      <ul class="space-y-3">
+        <li class="flex gap-3 items-start">
+          <span class="text-green-500 mt-0.5 text-lg">✓</span>
+          <span class="text-gray-700">A local setup where you can describe what you want to build in plain English, have AI generate the code, and run it instantly.</span>
+        </li>
+        <li class="flex gap-3 items-start">
+          <span class="text-green-500 mt-0.5 text-lg">✓</span>
+          <span class="text-gray-700">Git, VS Code, and Claude Code installed and configured — no Node.js required.</span>
+        </li>
+        <li class="flex gap-3 items-start">
+          <span class="text-green-500 mt-0.5 text-lg">✓</span>
+          <span class="text-gray-700">A GitHub account connected and a Vercel deployment pipeline set up.</span>
+        </li>
+        <li class="flex gap-3 items-start">
+          <span class="text-green-500 mt-0.5 text-lg">✓</span>
+          <span class="text-gray-700">A repeatable daily workflow for prototyping, testing, and publishing to a live URL you can share with anyone.</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- BENEFITS -->
+    <section id="benefits">
+      <div class="inline-block bg-purple-50 text-purple-700 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-6">
+        Benefits
+      </div>
+      <div class="grid sm:grid-cols-2 gap-5">
+
+        <!-- Card 1 -->
+        <div class="benefit-card bg-white rounded-xl border border-gray-100 p-5 shadow-sm fade-in-up delay-1">
+          <div class="w-10 h-10 rounded-lg bg-yellow-50 flex items-center justify-center text-xl mb-3">⚡</div>
+          <h3 class="font-semibold text-gray-900 mb-1">Faster feedback loops</h3>
+          <p class="text-sm text-gray-500 leading-relaxed">
+            Instead of writing a spec, waiting for a dev sprint, and reviewing a build two weeks later —
+            you describe it, Claude builds it, you react in minutes.
+          </p>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="benefit-card bg-white rounded-xl border border-gray-100 p-5 shadow-sm fade-in-up delay-2">
+          <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-xl mb-3">👥</div>
+          <h3 class="font-semibold text-gray-900 mb-1">Better engineering conversations</h3>
+          <p class="text-sm text-gray-500 leading-relaxed">
+            When you've built something yourself — even with AI — you speak the language.
+            You know what's hard, what's easy, and what the tradeoffs are.
+          </p>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="benefit-card bg-white rounded-xl border border-gray-100 p-5 shadow-sm fade-in-up delay-3">
+          <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center text-xl mb-3">🔓</div>
+          <h3 class="font-semibold text-gray-900 mb-1">Independence on small changes</h3>
+          <p class="text-sm text-gray-500 leading-relaxed">
+            Copy updates, layout tweaks, new pages, simple data views — you can ship
+            these yourself without waiting for developer bandwidth.
+          </p>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="benefit-card bg-white rounded-xl border border-gray-100 p-5 shadow-sm fade-in-up delay-4">
+          <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-xl mb-3">🧩</div>
+          <h3 class="font-semibold text-gray-900 mb-1">Prototypes that are actually functional</h3>
+          <p class="text-sm text-gray-500 leading-relaxed">
+            Figma mockups show what something looks like. Claude-built prototypes show
+            how it actually works — and you can hand them directly to engineering.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TOOLS -->
+    <section id="tools">
+      <div class="inline-block bg-gray-100 text-gray-600 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-6">
+        Tools you'll install
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="tool-card bg-white border border-gray-200 rounded-xl p-4 flex gap-4 items-start">
+          <div class="w-9 h-9 rounded-lg bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-sm flex-shrink-0">G</div>
+          <div>
+            <p class="font-semibold text-sm">Git for Windows</p>
+            <p class="text-xs text-gray-500 mt-0.5">Version control — required by Claude Code to run commands on Windows. Install this first.</p>
+          </div>
+        </div>
+        <div class="tool-card bg-white border border-gray-200 rounded-xl p-4 flex gap-4 items-start">
+          <div class="w-9 h-9 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-sm flex-shrink-0">CC</div>
+          <div>
+            <p class="font-semibold text-sm">Claude Code</p>
+            <p class="text-xs text-gray-500 mt-0.5">Anthropic's CLI — lives in your terminal, reads your files, writes and edits code in plain English.</p>
+          </div>
+        </div>
+        <div class="tool-card bg-white border border-gray-200 rounded-xl p-4 flex gap-4 items-start">
+          <div class="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm flex-shrink-0">VS</div>
+          <div>
+            <p class="font-semibold text-sm">VS Code</p>
+            <p class="text-xs text-gray-500 mt-0.5">Your IDE — a visual window into your project files with a built-in terminal where Claude Code runs.</p>
+          </div>
+        </div>
+        <div class="tool-card bg-white border border-gray-200 rounded-xl p-4 flex gap-4 items-start">
+          <div class="w-9 h-9 rounded-lg bg-gray-800 text-white flex items-center justify-center font-bold text-sm flex-shrink-0">GH</div>
+          <div>
+            <p class="font-semibold text-sm">GitHub</p>
+            <p class="text-xs text-gray-500 mt-0.5">Cloud storage for your code — backs it up, makes it shareable, and connects to deployment.</p>
+          </div>
+        </div>
+        <div class="tool-card bg-white border border-gray-200 rounded-xl p-4 flex gap-4 items-start sm:col-span-2">
+          <div class="w-9 h-9 rounded-lg bg-black text-white flex items-center justify-center font-bold text-sm flex-shrink-0">▲</div>
+          <div>
+            <p class="font-semibold text-sm">Vercel</p>
+            <p class="text-xs text-gray-500 mt-0.5">Deployment platform — takes your GitHub code and publishes it as a live URL automatically. Free tier is generous.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETUP GUIDE -->
+    <section id="setup">
+      <div class="inline-block bg-indigo-50 text-indigo-700 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-6">
+        Setup guide
+      </div>
+
+      <div class="space-y-10">
+
+        <!-- Step 1 -->
+        <div class="setup-step fade-in-up" data-step="1">
+          <div class="flex gap-4 items-start mb-4">
+            <div class="step-num">1</div>
+            <div>
+              <h3 class="text-lg font-bold">Install Git for Windows</h3>
+              <p class="text-gray-500 text-sm mt-1">Download the latest x64 version from <strong>git-scm.com/downloads/win</strong> and run the installer with all default settings. The "Add Git to PATH" option is checked by default — leave it checked. Install this before Claude Code.</p>
+            </div>
+          </div>
+          <div class="ml-14 space-y-3">
+            <div class="callout-info rounded-lg p-3">
+              <p class="text-xs text-sky-700 font-medium">After installing, verify with:</p>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang-badge">PowerShell</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre>git --version    <span class="cmt"># e.g. git version 2.53.0.windows.2</span></pre>
+            </div>
+            <div class="callout-tip rounded-lg p-3">
+              <p class="text-xs text-indigo-700 font-medium">Why this comes first: Claude Code uses Git Bash internally to execute commands on Windows. Without it, Claude Code installs but can't function.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="setup-step fade-in-up delay-1" data-step="2">
+          <div class="flex gap-4 items-start mb-4">
+            <div class="step-num">2</div>
+            <div>
+              <h3 class="text-lg font-bold">Install Claude Code</h3>
+              <p class="text-gray-500 text-sm mt-1">Open PowerShell (search it in the Start menu — no need to run as Administrator) and paste this command. No Node.js required.</p>
+            </div>
+          </div>
+          <div class="ml-14 space-y-3">
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang-badge">PowerShell</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre>irm https://claude.ai/install.ps1 | iex</pre>
+            </div>
+            <div class="callout-warn rounded-lg p-3">
+              <p class="text-xs text-amber-700 font-medium">⚠ If <code class="bg-amber-100 px-1 rounded">claude</code> isn't recognised after install, close and reopen PowerShell. If it still doesn't work, ask Claude for the PATH fix command — it takes 30 seconds.</p>
+            </div>
+            <div class="callout-info rounded-lg p-3">
+              <p class="text-xs text-sky-700 font-medium">Subscription required: Claude Code needs a Claude Pro account ($20/mo) or higher. The free tier does not include access.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="setup-step fade-in-up delay-2" data-step="3">
+          <div class="flex gap-4 items-start mb-4">
+            <div class="step-num">3</div>
+            <div>
+              <h3 class="text-lg font-bold">Install VS Code</h3>
+              <p class="text-gray-500 text-sm mt-1">Download from <strong>code.visualstudio.com</strong> and click the Windows button — it auto-detects your OS. Run the installer with default settings. This gives you a visual file explorer and a built-in terminal so you can see and build in one window.</p>
+            </div>
+          </div>
+          <div class="ml-14">
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang-badge">PowerShell</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre>code --version   <span class="cmt"># confirms VS Code is in your PATH</span></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="setup-step fade-in-up delay-3" data-step="4">
+          <div class="flex gap-4 items-start mb-4">
+            <div class="step-num">4</div>
+            <div>
+              <h3 class="text-lg font-bold">Create a GitHub account</h3>
+              <p class="text-gray-500 text-sm mt-1">Go to <strong>github.com</strong> and sign up for a free account. GitHub is cloud storage for your code — it backs it up, makes it shareable with collaborators, and connects to your deployment pipeline. Choose your username thoughtfully; it appears in your repository URLs.</p>
+            </div>
+          </div>
+          <div class="ml-14">
+            <div class="callout-tip rounded-lg p-3">
+              <p class="text-xs text-indigo-700 font-medium">If you're setting up a fresh account, now is the easiest time to choose the username you want — before any repositories exist.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="setup-step fade-in-up delay-4" data-step="5">
+          <div class="flex gap-4 items-start mb-4">
+            <div class="step-num">5</div>
+            <div>
+              <h3 class="text-lg font-bold">Create your first project folder and launch Claude Code</h3>
+              <p class="text-gray-500 text-sm mt-1">Open VS Code, press <strong>Ctrl + `</strong> to open the built-in terminal, and run these commands. Claude Code will authenticate via browser on first launch.</p>
+            </div>
+          </div>
+          <div class="ml-14 space-y-3">
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang-badge">PowerShell</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><span class="cmt"># Create a dedicated workspace</span>
+mkdir C:\Users\[yourname]\Projects
+cd    C:\Users\[yourname]\Projects
+
+<span class="cmt"># Launch Claude Code</span>
+claude</pre>
+            </div>
+            <div class="callout-tip rounded-lg p-3">
+              <p class="text-xs text-indigo-700 font-medium">On first launch: select a display theme, then authenticate via the browser window that opens. You'll see a welcome screen with your account name and a <code class="bg-indigo-100 px-1 rounded">&gt;</code> prompt. You're ready.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 6 -->
+        <div class="setup-step fade-in-up delay-5" data-step="6">
+          <div class="flex gap-4 items-start mb-4">
+            <div class="step-num">6</div>
+            <div>
+              <h3 class="text-lg font-bold">Set up Vercel for publishing</h3>
+              <p class="text-gray-500 text-sm mt-1">Go to <strong>vercel.com</strong> and sign up with your GitHub account. Once connected, Vercel watches your repositories and automatically publishes updates within about 30 seconds of saving code to GitHub. No configuration needed for standard web projects.</p>
+            </div>
+          </div>
+          <div class="ml-14">
+            <div class="callout-info rounded-lg p-3">
+              <p class="text-xs text-sky-700 font-medium">Every project you push to GitHub gets a URL like <code class="bg-sky-100 px-1 rounded">your-project.vercel.app</code> automatically. Share it with stakeholders, users, or your dev team for feedback on a real working build.</p>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /space-y-10 -->
+    </section>
+
+    <!-- DAILY WORKFLOW -->
+    <section id="workflow">
+      <div class="inline-block bg-teal-50 text-teal-700 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-6">
+        Daily workflow
+      </div>
+      <p class="text-gray-500 text-sm mb-8">Once set up, this is the loop you'll use every day:</p>
+
+      <div class="relative flex flex-col sm:flex-row gap-6 sm:gap-0">
+        <!-- Arrow connector (desktop) -->
+        <div class="hidden sm:block absolute top-1/2 left-0 right-0 h-0.5 bg-gray-200 -z-0" style="top:2.5rem"></div>
+
+        <div class="workflow-step relative sm:flex-1 text-center z-10">
+          <div class="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-2xl mx-auto mb-3 shadow-md">💬</div>
+          <p class="font-semibold text-sm">Plan</p>
+          <p class="text-xs text-gray-400 mt-1">Define what you want in Claude.ai, get a ready-to-paste prompt</p>
+        </div>
+
+        <div class="hidden sm:flex items-center justify-center w-8 text-gray-300 text-xl" style="margin-top:-1.5rem">→</div>
+
+        <div class="workflow-step relative sm:flex-1 text-center z-10">
+          <div class="w-14 h-14 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-2xl mx-auto mb-3 shadow-md">🤖</div>
+          <p class="font-semibold text-sm">Build</p>
+          <p class="text-xs text-gray-400 mt-1">Paste prompt into Claude Code, watch it write files</p>
+        </div>
+
+        <div class="hidden sm:flex items-center justify-center w-8 text-gray-300 text-xl" style="margin-top:-1.5rem">→</div>
+
+        <div class="workflow-step relative sm:flex-1 text-center z-10">
+          <div class="w-14 h-14 rounded-2xl bg-sky-600 text-white flex items-center justify-center text-2xl mx-auto mb-3 shadow-md">👀</div>
+          <p class="font-semibold text-sm">Review</p>
+          <p class="text-xs text-gray-400 mt-1">See files in VS Code, iterate in plain English</p>
+        </div>
+
+        <div class="hidden sm:flex items-center justify-center w-8 text-gray-300 text-xl" style="margin-top:-1.5rem">→</div>
+
+        <div class="workflow-step relative sm:flex-1 text-center z-10">
+          <div class="w-14 h-14 rounded-2xl bg-gray-800 text-white flex items-center justify-center text-2xl mx-auto mb-3 shadow-md">💾</div>
+          <p class="font-semibold text-sm">Save</p>
+          <p class="text-xs text-gray-400 mt-1">Tell Claude Code to commit changes to GitHub</p>
+        </div>
+
+        <div class="hidden sm:flex items-center justify-center w-8 text-gray-300 text-xl" style="margin-top:-1.5rem">→</div>
+
+        <div class="workflow-step relative sm:flex-1 text-center z-10">
+          <div class="w-14 h-14 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-2xl mx-auto mb-3 shadow-md">🚀</div>
+          <p class="font-semibold text-sm">Publish</p>
+          <p class="text-xs text-gray-400 mt-1">Vercel auto-deploys a live URL in ~30 seconds</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER CTA -->
+    <section class="bg-indigo-600 rounded-2xl p-8 text-white text-center fade-in-up">
+      <h2 class="text-2xl font-bold mb-3">You're ready to build.</h2>
+      <p class="text-indigo-200 mb-6 max-w-md mx-auto">
+        Open a terminal, navigate to a project folder, run <code class="bg-white/10 px-2 py-0.5 rounded font-mono text-sm">claude</code>, and describe what you want.
+        That's it.
+      </p>
+      <div class="code-block max-w-sm mx-auto text-left">
+        <div class="code-header">
+          <span class="lang-badge">Quick start</span>
+        </div>
+        <pre>cd C:\Projects\my-app
+claude</pre>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ SCRIPTS -->
+<script>
+  // ── Copy button
+  function copyCode(btn) {
+    const pre = btn.closest('.code-block').querySelector('pre');
+    const text = pre.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 1800);
+    }).catch(() => {
+      btn.textContent = 'Error';
+      setTimeout(() => btn.textContent = 'Copy', 1800);
+    });
+  }
+
+  // ── Active sidebar link on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+
+  const sectionObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.nav-link[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => sectionObserver.observe(s));
+
+  // ── Progress bar: reflects how far down the page you've scrolled.
+  // Previous version used a Set that only ever added — once all steps were
+  // visited the count stuck at 6 and never decreased on scroll-up.
+  // Fix: on every scroll event, count how many step elements have their
+  // top edge above the middle of the viewport. That number goes up AND
+  // down as the user scrolls, giving a true bidirectional progress read.
+  const steps = document.querySelectorAll('.setup-step');
+  const manuallyDone = new Set(); // tracks click-completed steps independently
+
+  function updateProgress() {
+    const midpoint = window.innerHeight / 2;
+    let scrolledPast = 0;
+    steps.forEach((step, i) => {
+      const rect = step.getBoundingClientRect();
+      if (rect.top < midpoint || manuallyDone.has(i)) scrolledPast++;
+    });
+    const pct = Math.round((scrolledPast / steps.length) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = `${scrolledPast} of ${steps.length} steps`;
+  }
+
+  window.addEventListener('scroll', updateProgress, { passive: true });
+  updateProgress(); // initialise on load
+
+  steps.forEach((step, i) => {
+    const num = step.querySelector('.step-num');
+    num.style.cursor = 'pointer';
+    num.title = 'Click to mark complete';
+    num.addEventListener('click', () => {
+      const isManuallyDone = step.classList.toggle('manually-done');
+      if (isManuallyDone) {
+        num.style.background = '#10b981';
+        num.innerHTML = '✓';
+        manuallyDone.add(i);
+      } else {
+        num.style.background = '#4f46e5';
+        num.innerHTML = i + 1;
+        manuallyDone.delete(i);
+      }
+      updateProgress();
+    });
+  });
+</script>
+
+</body>
+</html>
