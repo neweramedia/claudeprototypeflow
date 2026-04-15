@@ -444,9 +444,6 @@
             <div class="callout-warn rounded-lg p-3">
               <p class="text-xs text-amber-700 font-medium">⚠ If <code class="bg-amber-100 px-1 rounded">claude</code> isn't recognised after install, close and reopen PowerShell. If it still doesn't work, ask Claude for the PATH fix command — it takes 30 seconds.</p>
             </div>
-            <div class="callout-info rounded-lg p-3">
-              <p class="text-xs text-sky-700 font-medium">Subscription required: Claude Code needs a Claude Pro account ($20/mo) or higher. The free tier does not include access.</p>
-            </div>
           </div>
         </div>
 
@@ -510,6 +507,22 @@ claude</pre>
             </div>
             <div class="callout-tip rounded-lg p-3">
               <p class="text-xs text-indigo-700 font-medium">On first launch: select a display theme, then authenticate via the browser window that opens. You'll see a welcome screen with your account name and a <code class="bg-indigo-100 px-1 rounded">&gt;</code> prompt. You're ready.</p>
+            </div>
+            <div class="callout-warn rounded-lg p-3">
+              <p class="text-xs text-amber-700 font-medium mb-2">⚠ Before your first save, tell Git who you are.</p>
+              <p class="text-xs text-amber-600 mb-3">This takes 30 seconds and only needs to be done once. Skip it and your first publish attempt will silently fail — no error you can easily diagnose, just nothing making it to GitHub or Vercel.</p>
+              <p class="text-xs text-amber-600 mb-2">Run these two lines in PowerShell, replacing the placeholders with your actual GitHub email and username:</p>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang-badge">PowerShell</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre>git config --global user.email <span class="str">"you@example.com"</span>
+git config --global user.name  <span class="str">"yourGitHubUsername"</span></pre>
+            </div>
+            <div class="callout-tip rounded-lg p-3">
+              <p class="text-xs text-indigo-700 font-medium">Every change you save to GitHub will now be stamped with your name. Collaborators and developers looking at the project history will see that you built it.</p>
             </div>
           </div>
         </div>
